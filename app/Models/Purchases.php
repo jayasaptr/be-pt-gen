@@ -13,9 +13,9 @@ class Purchases extends Model
         'status'
     ];
 
-    public function supplier()
+    public function supplierId()
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->belongsTo(Supplier::class, 'supplier_id', 'id');
     }
 
     

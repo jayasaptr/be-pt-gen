@@ -78,6 +78,7 @@ class StockMovement extends Controller
             'type' => $request->input('type'),
             'quantity' => $request->input('quantity'),
             'note' => $request->input('note'),
+            'purchase_item_id' => $request->input('purchase_item_id'),
         ]);
 
         // Return a JSON response with the created stock movement
@@ -186,6 +187,79 @@ class StockMovement extends Controller
         ]);
     }
 
+    public function updateByPurchaseItemId(Request $request, string $id)
+    {
+        $stockMovement = ModelsStockMovement::where('purchase_item_id', $id)->first();
+
+        if (!$stockMovement) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Stock movement not found',
+            ], 404);
+        }
+
+        $oldProductId = $stockMovement->product_id;
+        $oldProduct = Products::findOrFail($oldProductId);
+        $oldQuantity = (int) $stockMovement->quantity;
+        $oldType = $stockMovement->type;
+
+        // Rollback stok lama
+        if ($oldType === 'in') {
+            $oldProduct->stock -= $oldQuantity;
+        } elseif ($oldType === 'out') {
+            $oldProduct->stock += $oldQuantity;
+        }
+        $oldProduct->save();
+
+        // Ambil data baru dari request
+        $newProductId = $request->input('product_id');
+        $newProduct = Products::findOrFail($newProductId);
+        $newQuantity = (int) $request->input('quantity');
+        $newType = $request->input('type');
+
+        // Cek jika product_id berubah
+        $isDifferentProduct = $oldProductId != $newProductId;
+
+        // Validasi stok produk baru jika type 'out'
+        if ($newType === 'out' && $newProduct->stock < $newQuantity) {
+            // Kembalikan stok lama karena gagal update
+            if ($oldType === 'in') {
+                $oldProduct->stock += $oldQuantity;
+            } elseif ($oldType === 'out') {
+                $oldProduct->stock -= $oldQuantity;
+            }
+            $oldProduct->save();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Insufficient stock on new product',
+            ], 422);
+        }
+
+        // Terapkan perubahan stok ke produk baru
+        if ($newType === 'in') {
+            $newProduct->stock += $newQuantity;
+        } elseif ($newType === 'out') {
+            $newProduct->stock -= $newQuantity;
+        }
+        $newProduct->save();
+
+        // Update record stock movement
+        $stockMovement->update([
+            'product_id' => $newProductId,
+            'type' => $newType,
+            'quantity' => $newQuantity,
+            'note' => $request->input('note'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Stock movement updated successfully',
+            'data' => $stockMovement,
+        ]);
+    }
+
+
     /**
      * Remove the specified resource from storage.
      */
@@ -217,6 +291,60 @@ class StockMovement extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Stock movement deleted successfully',
+        ]);
+    }
+
+    public function destroyByPurchaseItemId(string $id)
+    {
+        // Ambil stock movement berdasarkan purchase_item_id
+        $stockMovement = ModelsStockMovement::where('purchase_item_id', $id)->first();
+
+        if (!$stockMovement) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Stock movement not found.',
+            ], 404);
+        }
+
+        // Ambil produk terkait
+        $product = Products::find($stockMovement->product_id);
+
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product associated with stock movement not found.',
+            ], 404);
+        }
+
+        // Rollback stok sesuai tipe
+        switch ($stockMovement->type) {
+            case 'in':
+                if ($product->stock < $stockMovement->quantity) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Rollback would cause negative stock.',
+                    ], 422);
+                }
+                $product->stock -= $stockMovement->quantity;
+                break;
+
+            case 'out':
+                $product->stock += $stockMovement->quantity;
+                break;
+
+            default:
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid stock movement type.',
+                ], 400);
+        }
+
+        $product->save();
+        $stockMovement->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Stock movement deleted and stock updated successfully.',
         ]);
     }
 }

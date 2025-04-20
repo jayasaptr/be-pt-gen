@@ -10,7 +10,8 @@ class StockMovement extends Model
         'product_id',
         'type',
         'quantity',
-        'note'
+        'note',
+        'purchase_item_id',
     ];
 
     public function productId()

@@ -17,5 +17,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('/stock-movements', \App\Http\Controllers\Api\StockMovement::class);
 
+    Route::apiResource('/suppliers', \App\Http\Controllers\Api\SuppliersController::class);
+
+    Route::apiResource('/purchases', \App\Http\Controllers\Api\PurchaseController::class);
+
+    Route::apiResource('/purchase-items', \App\Http\Controllers\Api\PurchaseItemController::class);
+
     Route::post('/logout', [AuthController::class, 'logout']);
 });
