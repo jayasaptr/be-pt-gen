@@ -13,8 +13,8 @@ class StockMovement extends Model
         'note'
     ];
 
-    public function product()
+    public function productId()
     {
-        return $this->belongsTo(Products::class);
+        return $this->belongsTo(Products::class, 'product_id', 'id');
     }
 }
