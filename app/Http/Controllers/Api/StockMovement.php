@@ -259,6 +259,77 @@ class StockMovement extends Controller
         ]);
     }
 
+    public function updateBySalesItemId(Request $request, string $id)
+    {
+        $stockMovement = ModelsStockMovement::where('sales_item_id', $id)->first();
+
+        if (!$stockMovement) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Stock movement not found',
+            ], 404);
+        }
+
+        $oldProductId = $stockMovement->product_id;
+        $oldProduct = Products::findOrFail($oldProductId);
+        $oldQuantity = (int) $stockMovement->quantity;
+        $oldType = $stockMovement->type;
+
+        // Rollback stok lama
+        if ($oldType === 'in') {
+            $oldProduct->stock -= $oldQuantity;
+        } elseif ($oldType === 'out') {
+            $oldProduct->stock += $oldQuantity;
+        }
+        $oldProduct->save();
+
+        // Ambil data baru dari request
+        $newProductId = $request->input('product_id');
+        $newProduct = Products::findOrFail($newProductId);
+        $newQuantity = (int) $request->input('quantity');
+        $newType = $request->input('type');
+
+        // Cek jika product_id berubah
+        $isDifferentProduct = $oldProductId != $newProductId;
+
+        // Validasi stok produk baru jika type 'out'
+        if ($newType === 'out' && $newProduct->stock < $newQuantity) {
+            // Kembalikan stok lama karena gagal update
+            if ($oldType === 'in') {
+                $oldProduct->stock += $oldQuantity;
+            } elseif ($oldType === 'out') {
+                $oldProduct->stock -= $oldQuantity;
+            }
+            $oldProduct->save();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Insufficient stock on new product',
+            ], 422);
+        }
+
+        // Terapkan perubahan stok ke produk baru
+        if ($newType === 'in') {
+            $newProduct->stock += $newQuantity;
+        } elseif ($newType === 'out') {
+            $newProduct->stock -= $newQuantity;
+        }
+        $newProduct->save();
+
+        // Update record stock movement
+        $stockMovement->update([
+            'product_id' => $newProductId,
+            'type' => $newType,
+            'quantity' => $newQuantity,
+            'note' => $request->input('note'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Stock movement updated successfully',
+            'data' => $stockMovement,
+        ]);
+    }
 
     /**
      * Remove the specified resource from storage.

@@ -13,4 +13,13 @@ class SalesItem extends Model
         'price',
         'subtotal',
     ];
+
+    public function salesId()
+    {
+        return $this->belongsTo(Sales::class, 'sales_id', 'id');
+    }
+    public function productId()
+    {
+        return $this->belongsTo(Products::class, 'product_id', 'id');
+    }
 }
