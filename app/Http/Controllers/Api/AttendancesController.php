@@ -91,6 +91,21 @@ class AttendancesController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Find the attendance record by ID
+        $attendance = Attendances::find($id);
+        // If the attendance record is not found, return a JSON response with an error message
+        if (!$attendance) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Attendance not found',
+            ], 404);
+        }
+        // Delete the attendance record
+        $attendance->delete();
+        // Return a JSON response indicating success
+        return response()->json([
+            'status' => true,
+            'message' => 'Attendance deleted successfully',
+        ], 200);
     }
 }
