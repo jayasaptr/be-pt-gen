@@ -12,10 +12,19 @@ class ProductCategory extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Fetch all product categories with pagination
-        $categories = ProductCategories::paginate(10);
+        // Get search query if exists
+        $search = $request->query('search');
+
+        // Fetch product categories with optional search and pagination
+        $query = ProductCategories::query();
+
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        $categories = $query->paginate(10);
 
         return response()->json([
             'status' => true,

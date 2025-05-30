@@ -44,7 +44,6 @@ class PayrollController extends Controller
             'basic_salary' => 'required|numeric',
             'deductions' => 'nullable|numeric',
             'bonuses' => 'nullable|numeric',
-            'total_paid' => 'required|numeric',
             'status' => 'required|string',
             'paid_at' => 'nullable|date',
         ]);
@@ -65,7 +64,7 @@ class PayrollController extends Controller
             'basic_salary' => $request->input('basic_salary'),
             'deductions' => $request->input('deductions'),
             'bonuses' => $request->input('bonuses'),
-            'total_paid' => $request->input('total_paid'),
+            'total_paid' => ($request->input('basic_salary') ?? 0) + ($request->input('bonuses') ?? 0) - ($request->input('deductions') ?? 0),
             'status' => $request->input('status'),
             'paid_at' => $request->input('paid_at'),
         ]);

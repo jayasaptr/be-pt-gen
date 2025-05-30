@@ -40,9 +40,8 @@ class AttendancesController extends Controller
     {
         // Validate the request data
         $validator = Validator::make($request->all(), [
-            'employee_id' => 'required|exists:employees,id',
-            'check_in' => 'required|date',
-            'check_out' => 'nullable|date|after:check_in',
+            'employee_id'    => 'required|exists:employees,id',
+            'date'           => 'required|date',
         ]);
 
         // If validation fails, return a JSON response with errors
@@ -54,12 +53,32 @@ class AttendancesController extends Controller
             ], 422);
         }
 
+        // Check if attendance already exists for the same employee and date
+        $exists = Attendances::where('employee_id', $request->input('employee_id'))
+            ->where('date', $request->input('date'))
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Attendance for this employee on the given date already exists.',
+            ], 409);
+        }
+
         // Create a new attendance record
         $attendance = Attendances::create([
-            'employee_id' => $request->input('employee_id'),
-            'check_in' => $request->input('check_in'),
-            'check_out' => $request->input('check_out'),
+            'employee_id'    => $request->input('employee_id'),
+            'date'           => $request->input('date'),
+            'check_in_time'  => $request->input('check_in_time'),
+            'check_out_time' => $request->input('check_out_time'),
         ]);
+
+        // Return a JSON response indicating success
+        return response()->json([
+            'status' => true,
+            'message' => 'Attendance created successfully',
+            'data' => $attendance,
+        ], 201);
     }
 
     /**
@@ -83,7 +102,30 @@ class AttendancesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Find the attendance record by ID
+        $attendance = Attendances::find($id);
+        // If the attendance record is not found, return a JSON response with an error message
+        if (!$attendance) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Attendance not found',
+            ], 404);
+        }
+
+        // Update the attendance record
+        $attendance->update([
+            'employee_id'    => $request->input('employee_id') ?? $attendance->employee_id,
+            'date'           => $request->input('date') ?? $attendance->date,
+            'check_in_time'  => $request->input('check_in_time') ?? $attendance->check_in_time,
+            'check_out_time' => $request->input('check_out_time') ?? $attendance->check_out_time,
+        ]);
+
+        // Return a JSON response indicating success
+        return response()->json([
+            'status' => true,
+            'message' => 'Attendance updated successfully',
+            'data' => $attendance,
+        ], 200);
     }
 
     /**

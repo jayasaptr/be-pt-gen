@@ -16,4 +16,9 @@ class Payrolls extends Model
         'status',
         'paid_at',
     ];
+
+    public function employeeId()
+    {
+        return $this->belongsTo(Employees::class, 'employee_id', 'id');
+    }
 }

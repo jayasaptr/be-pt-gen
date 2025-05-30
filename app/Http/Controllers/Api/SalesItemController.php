@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Products;
 use App\Models\SalesItem;
 use App\Services\StockMovementService;
 use Illuminate\Http\Request;
@@ -13,10 +14,20 @@ class SalesItemController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Fetch all sales items with pagination
-        $salesItems = SalesItem::paginate(10);
+        // Get sales_id from query if present
+        $salesId = $request->query('sales_id');
+
+        // Query sales items, filter by sales_id if provided
+        $query = SalesItem::query();
+
+        if ($salesId) {
+            $query->where('sales_id', $salesId);
+        }
+
+        // Fetch sales items with pagination
+        $salesItems = $query->with(['salesId.customerId', 'productId'])->paginate(10);
 
         // Return the sales items as a JSON response
         return response()->json([
@@ -56,6 +67,14 @@ class SalesItemController extends Controller
             ], 422);
         }
 
+        $product = Products::find($request->input('product_id'));
+        if ($product->stock < $request->input('quantity')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Insufficient stock',
+            ], 422);
+        }
+
         // Calculate subtotal automatically
         $subtotal = $request->input('price') * $request->input('quantity');
 
@@ -68,13 +87,25 @@ class SalesItemController extends Controller
             'subtotal' => $subtotal,
         ]);
 
+
         // Store to stock movement
+        // $stockMovementController = new StockMovement();
+        // $stockRequest = new Request([
+        //     'product_id' => $request->input('product_id'),
+        //     'type' => 'out',
+        //     'quantity' => $request->input('quantity'),
+        //     'note' => $request->note ?? 'Penjualan otomatis dari sales ID ' . $request->input('sales_id'),
+        //     'sales_item_id' => $salesItem->id,
+        // ]);
+
+        // $stockMovementController->store($stockRequest);
+        // store to stock movement
         $stockMovementController = new StockMovement();
         $stockRequest = new Request([
             'product_id' => $request->input('product_id'),
             'type' => 'out',
             'quantity' => $request->input('quantity'),
-            'note' => $request->note ?? 'Penjualan otomatis dari sales ID ' . $request->input('sales_id'),
+            'note' => $request->note ?? 'penjualan otomatis dari purchase ID ' . $request->input('sales_id'),
             'sales_item_id' => $salesItem->id,
         ]);
 
@@ -181,7 +212,7 @@ class SalesItemController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $id, StockMovementService $stockService)
     {
         // Fetch the sales item by ID
         $salesItem = SalesItem::find($id);
@@ -195,8 +226,7 @@ class SalesItemController extends Controller
         }
 
         // Rollback stock movement
-        $stockService = new StockMovementService();
-        $result = $stockService->rollbackStockMovementByPurchaseItemId($salesItem->id);
+        $result = $stockService->rollbackStockMovementBySalesItemId($salesItem->id);
 
         if ($result !== true) {
             return response()->json(['success' => false, 'message' => $result], 422);

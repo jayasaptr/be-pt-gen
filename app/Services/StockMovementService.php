@@ -16,11 +16,32 @@ class StockMovementService
         $product = Products::find($stockMovement->product_id);
         if (!$product) return 'Product not found';
 
-        if ($stockMovement->type === 'in') {
+        if ($stockMovement->type == 'in') {
             if ($product->stock < $stockMovement->quantity) return 'Stock rollback would result in negative stock';
             $product->stock -= $stockMovement->quantity;
-        } elseif ($stockMovement->type === 'out') {
+        } elseif ($stockMovement->type == 'out') {
             $product->stock += $stockMovement->quantity;
+        }
+
+        $product->save();
+        $stockMovement->delete();
+
+        return true;
+    }
+
+    public function rollbackStockMovementBySalesItemId(string $salesItemId): bool|string
+    {
+        $stockMovement = StockMovement::where('sales_item_id', $salesItemId)->first();
+
+        if (!$stockMovement) return 'Stock movement not found';
+
+        $product = Products::find($stockMovement->product_id);
+        if (!$product) return 'Product not found';
+
+        if ($stockMovement->type == 'out') {
+            $product->stock += $stockMovement->quantity;
+        } elseif ($stockMovement->type == 'in') {
+            $product->stock -= $stockMovement->quantity;
         }
 
         $product->save();

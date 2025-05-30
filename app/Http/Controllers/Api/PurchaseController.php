@@ -42,7 +42,7 @@ class PurchaseController extends Controller
             'supplier_id' => 'required|exists:suppliers,id',
             'purchase_date' => 'required|date',
             'total_amount' => 'required|numeric|min:0',
-            'status' => 'required|in:pending,completed,cancelled',
+            'status' => 'required|in:pending,received,canceled',
         ]);
 
         // If validation fails, return a JSON response with errors

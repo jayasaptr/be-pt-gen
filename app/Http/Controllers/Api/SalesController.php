@@ -15,7 +15,7 @@ class SalesController extends Controller
     public function index()
     {
         // Fetch all sales from the database with pagination
-        $sales = Sales::with('customer')->paginate(10);
+        $sales = Sales::with('customerId')->paginate(10);
 
         // Return the sales as a JSON response
         return response()->json([

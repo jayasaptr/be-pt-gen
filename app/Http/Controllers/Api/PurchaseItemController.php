@@ -13,11 +13,23 @@ class PurchaseItemController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Fetch all purchase items with pagination
-        $purchaseItems = PurchaseItem::with('purchaseId', 'productId')->paginate(10);
-        // Return the purchase items as a JSON response
+        // Ambil parameter purchase_id jika ada
+        $purchaseId = $request->query('purchase_id');
+
+        // Query dasar dengan relasi
+        $query = PurchaseItem::with('purchaseId', 'productId');
+
+        // Jika ada purchase_id, filter berdasarkan purchase_id
+        if ($purchaseId) {
+            $query->where('purchase_id', $purchaseId);
+        }
+
+        // Paginasi hasil
+        $purchaseItems = $query->paginate(10);
+
+        // Return response JSON
         return response()->json([
             'success' => true,
             'message' => 'Purchase items retrieved successfully',

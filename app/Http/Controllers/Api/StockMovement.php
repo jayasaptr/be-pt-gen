@@ -79,6 +79,7 @@ class StockMovement extends Controller
             'quantity' => $request->input('quantity'),
             'note' => $request->input('note'),
             'purchase_item_id' => $request->input('purchase_item_id'),
+            'sales_item_id' => $request->input('sales_item_id'),
         ]);
 
         // Return a JSON response with the created stock movement
