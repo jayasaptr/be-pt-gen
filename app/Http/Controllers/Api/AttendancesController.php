@@ -12,10 +12,17 @@ class AttendancesController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Fetch all attendances with pagination
-        $attendances = Attendances::with('employeeId')->paginate(10);
+        // Check if user_id parameter is present
+        $query = Attendances::with('employeeId');
+
+        if ($request->has('employee_id')) {
+            $query->where('employee_id', $request->input('employee_id'));
+        }
+
+        // Fetch attendances with pagination
+        $attendances = $query->paginate(10);
 
         // Return the attendances as a JSON response
         return response()->json([

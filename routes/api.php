@@ -39,5 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/dashboard', [\App\Http\Controllers\Api\DashboardController::class, 'getDashboard']);
 
+    Route::get('/dashboard-admin', [\App\Http\Controllers\Api\DashboardController::class, 'getDashboardAdmin']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
 });

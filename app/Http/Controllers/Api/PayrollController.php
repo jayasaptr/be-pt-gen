@@ -12,10 +12,17 @@ class PayrollController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         // Fetch all payroll records with pagination
-        $payrolls = Payrolls::with('employeeId')->paginate(10);
+        $payrolls = Payrolls::with('employeeId');
+
+        if ($request->has('employee_id')) {
+            $payrolls->where('employee_id', $request->input('employee_id'));
+        }
+
+        $payrolls = $payrolls->paginate(10);
+
         // Return the payroll records as a JSON response
         return response()->json([
             'status' => true,
