@@ -79,6 +79,11 @@ class PurchaseItemController extends Controller
             'total' => $total,
         ]);
 
+        // tambah total_amount pada purchase
+        $purchase = $purchaseItem->purchaseId;
+        $purchase->total_amount += $total;
+        $purchase->save();
+
         // store to stock movement
         $stockMovementController = new StockMovement();
         $stockRequest = new Request([

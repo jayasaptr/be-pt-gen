@@ -99,6 +99,12 @@ class SalesItemController extends Controller
         // ]);
 
         // $stockMovementController->store($stockRequest);
+
+        //tambah sales_amount pada sales
+        $sales = $salesItem->salesId;
+        $sales->sales_amount += $subtotal;
+        $sales->save();
+
         // store to stock movement
         $stockMovementController = new StockMovement();
         $stockRequest = new Request([

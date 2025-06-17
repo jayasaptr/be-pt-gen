@@ -42,7 +42,6 @@ class SalesController extends Controller
         $validator = Validator::make($request->all(), [
             'customer_id' => 'required|exists:customers,id',
             'sales_date' => 'required|date',
-            'sales_amount' => 'required|numeric|min:0',
             'sales_status' => 'required|in:draft,paid,canceled',
         ]);
 
@@ -58,7 +57,7 @@ class SalesController extends Controller
         $sales = Sales::create([
             'customer_id' => $request->customer_id,
             'sales_date' => $request->sales_date,
-            'sales_amount' => $request->sales_amount,
+            'sales_amount' => 0,
             'sales_status' => $request->sales_status,
         ]);
 

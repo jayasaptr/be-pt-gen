@@ -42,4 +42,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard-admin', [\App\Http\Controllers\Api\DashboardController::class, 'getDashboardAdmin']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::get('/report/barang-tersedia', [\App\Http\Controllers\ReportController::class, 'getReportBarangTersedia']);
+
+    Route::get('/report/barang-terjual', [\App\Http\Controllers\ReportController::class, 'getReportBarangTerjual']);
+
+    Route::get('/report/pembelian', [\App\Http\Controllers\ReportController::class, 'getReportPembelian']);
+
+    Route::get('/report/penjualan', [\App\Http\Controllers\ReportController::class, 'getReportPenjualan']);
+
+    Route::get('/report/employee', [\App\Http\Controllers\ReportController::class, 'getReportEmployee']);
+
+    Route::get('/report/attendance', [\App\Http\Controllers\ReportController::class, 'getReportAttendance']);
+
+    Route::get('/report/payroll', [\App\Http\Controllers\ReportController::class, 'getReportPayroll']);
+
+    Route::get('/report/stock-movement', [\App\Http\Controllers\ReportController::class, 'getReportStockMovement']);
 });

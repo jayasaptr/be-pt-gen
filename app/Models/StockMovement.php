@@ -19,4 +19,14 @@ class StockMovement extends Model
     {
         return $this->belongsTo(Products::class, 'product_id', 'id');
     }
+
+    public function purchaseItemId()
+    {
+        return $this->belongsTo(PurchaseItem::class, 'purchase_item_id', 'id');
+    }
+
+    public function salesItemId()
+    {
+        return $this->belongsTo(SalesItem::class, 'sales_item_id', 'id');
+    }
 }

@@ -41,7 +41,6 @@ class PurchaseController extends Controller
         $validator = Validator::make($request->all(), [
             'supplier_id' => 'required|exists:suppliers,id',
             'purchase_date' => 'required|date',
-            'total_amount' => 'required|numeric|min:0',
             'status' => 'required|in:pending,received,canceled',
         ]);
 
@@ -54,8 +53,11 @@ class PurchaseController extends Controller
             ], 422);
         }
 
-        // Create a new purchase
-        $purchase = Purchases::create($request->all());
+        // Create a new purchase with total_amount set to 0
+        $data = $request->all();
+        $data['total_amount'] = 0;
+        $purchase = Purchases::create($data);
+
         // Return the created purchase as a JSON response
         return response()->json([
             'success' => true,
