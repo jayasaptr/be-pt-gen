@@ -58,4 +58,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/report/payroll', [\App\Http\Controllers\ReportController::class, 'getReportPayroll']);
 
     Route::get('/report/stock-movement', [\App\Http\Controllers\ReportController::class, 'getReportStockMovement']);
+
+    Route::resource('/service', \App\Http\Controllers\ServiceController::class);
 });
