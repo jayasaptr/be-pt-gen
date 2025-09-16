@@ -71,7 +71,7 @@ class SalesItemController extends Controller
         if ($product->stock < $request->input('quantity')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Insufficient stock',
+                'message' => 'Stock tidak mencukupi untuk produk ' . $product->name,
             ], 422);
         }
 
