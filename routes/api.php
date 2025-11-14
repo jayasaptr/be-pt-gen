@@ -60,4 +60,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/report/stock-movement', [\App\Http\Controllers\ReportController::class, 'getReportStockMovement']);
 
     Route::resource('/service', \App\Http\Controllers\ServiceController::class);
+
+    Route::get('/kas', [\App\Http\Controllers\Api\PurchaseController::class, 'totalPerDate']);
 });
